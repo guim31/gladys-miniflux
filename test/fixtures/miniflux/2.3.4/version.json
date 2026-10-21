@@ -1,0 +1,15 @@
+{
+  "request": "GET /v1/version",
+  "status": 200,
+  "contentType": "application/json",
+  "body": {
+    "version": "2.3.4",
+    "commit": "238c5614",
+    "build_date": "2026-10-19T20:54:31Z",
+    "go_version": "go1.27.2",
+    "compiler": "gc",
+    "arch": "amd64",
+    "os": "linux"
+  },
+  "recorded": "Miniflux 2.3.4 (ghcr.io/miniflux/miniflux), 2026-10-21, test feeds served on a private network"
+}

@@ -1,0 +1,14 @@
+{
+  "request": "GET /v1/feeds/counters",
+  "status": 200,
+  "contentType": "application/json",
+  "body": {
+    "reads": {},
+    "unreads": {
+      "1": 2,
+      "2": 1,
+      "3": 2
+    }
+  },
+  "recorded": "Miniflux 2.3.4 (ghcr.io/miniflux/miniflux), 2026-10-21, test feeds served on a private network"
+}

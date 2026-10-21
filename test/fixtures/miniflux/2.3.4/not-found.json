@@ -1,0 +1,7 @@
+{
+  "request": "GET /v1/nope",
+  "status": 404,
+  "contentType": "text/plain; charset=utf-8",
+  "body": "404 page not found\n",
+  "recorded": "Miniflux 2.3.4 (ghcr.io/miniflux/miniflux), 2026-10-21, test feeds served on a private network"
+}

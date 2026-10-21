@@ -1,177 +1,847 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Miniflux",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Your Miniflux reader in Gladys: unread counts, new entries, feeds in error, mark as read.",
+    "fr": "Votre lecteur Miniflux dans Gladys : non lus, nouveaux articles, flux en erreur, marquer lu.",
+    "de": "Dein Miniflux-Reader in Gladys: Ungelesene, neue Artikel, Feeds mit Fehler, als gelesen.",
+    "es": "Su lector Miniflux en Gladys: no leídos, nuevos artículos, fuentes con error, marcar leído."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-miniflux:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-miniflux/main/cover.png",
+  "categories": ["services"],
   "transports": ["local", "cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Connect Miniflux",
+        "fr": "Connecter Miniflux",
+        "de": "Miniflux verbinden",
+        "es": "Conectar Miniflux"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Enter the address of your Miniflux (port 8080 by default, or its public address) and an API key: in Miniflux, open Settings → API Keys and create one. The integration reads your unread counts, announces the new entries and the feeds in error, and marks entries as read from your scenes.",
+        "fr": "Saisissez l'adresse de votre Miniflux (port 8080 par défaut, ou son adresse publique) et une clé d'API : dans Miniflux, ouvrez Paramètres → Clés d'API et créez-en une. L'intégration lit vos compteurs de non lus, annonce les nouveaux articles et les flux en erreur, et marque des articles comme lus depuis vos scènes.",
+        "de": "Gib die Adresse deines Miniflux (standardmäßig Port 8080, oder seine öffentliche Adresse) und einen API-Schlüssel ein: Öffne in Miniflux Einstellungen → API-Schlüssel und erstelle einen. Die Integration liest deine Ungelesen-Zähler, meldet neue Artikel und Feeds mit Fehler und markiert Artikel aus deinen Szenen als gelesen.",
+        "es": "Introduzca la dirección de su Miniflux (puerto 8080 por defecto, o su dirección pública) y una clave de API: en Miniflux, abra Ajustes → Claves de API y cree una. La integración lee sus contadores de no leídos, anuncia los nuevos artículos y las fuentes con error, y marca artículos como leídos desde sus escenas."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://miniflux.app/docs/api.html",
+          "label": {
+            "en": "Miniflux API documentation",
+            "fr": "Documentation de l'API Miniflux",
+            "de": "Miniflux-API-Dokumentation",
+            "es": "Documentación de la API de Miniflux"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Miniflux address",
+        "fr": "Adresse de Miniflux",
+        "de": "Miniflux-Adresse",
+        "es": "Dirección de Miniflux"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
+      "placeholder": {
+        "en": "e.g. 192.168.1.50:8080",
+        "fr": "ex. 192.168.1.50:8080",
+        "de": "z. B. 192.168.1.50:8080",
+        "es": "p. ej. 192.168.1.50:8080"
+      },
       "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "default": ""
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "api_key",
+      "type": "secret",
+      "label": {
+        "en": "API key",
+        "fr": "Clé d'API",
+        "de": "API-Schlüssel",
+        "es": "Clave de API"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "Miniflux → Settings → API Keys → Create a new API key.",
+        "fr": "Miniflux → Paramètres → Clés d'API → Créer une nouvelle clé d'API.",
+        "de": "Miniflux → Einstellungen → API-Schlüssel → Neuen API-Schlüssel erstellen.",
+        "es": "Miniflux → Ajustes → Claves de API → Crear una nueva clave de API."
+      },
+      "required": true
     },
     {
-      "key": "unit",
+      "key": "refresh_minutes",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Read Miniflux every",
+        "fr": "Lire Miniflux toutes les",
+        "de": "Miniflux lesen alle",
+        "es": "Leer Miniflux cada"
+      },
+      "description": {
+        "en": "New entries are announced at the next read. Miniflux itself checks the feeds every 60 minutes by default.",
+        "fr": "Les nouveaux articles sont annoncés à la lecture suivante. Miniflux vérifie lui-même les flux toutes les 60 minutes par défaut.",
+        "de": "Neue Artikel werden beim nächsten Lesen gemeldet. Miniflux selbst prüft die Feeds standardmäßig alle 60 Minuten.",
+        "es": "Los nuevos artículos se anuncian en la siguiente lectura. Miniflux comprueba las fuentes cada 60 minutos por defecto."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "5",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "1",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "5",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 minutes",
+            "fr": "30 minutes",
+            "de": "30 Minuten",
+            "es": "30 minutos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "60 minutes",
+            "fr": "60 minutes",
+            "de": "60 Minuten",
+            "es": "60 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "keywords",
+      "type": "string",
+      "label": {
+        "en": "Keywords to watch (optional)",
+        "fr": "Mots-clés à surveiller (facultatif)",
+        "de": "Zu beobachtende Stichwörter (optional)",
+        "es": "Palabras clave a vigilar (opcional)"
+      },
+      "placeholder": {
+        "en": "e.g. Gladys, Zigbee",
+        "fr": "ex. Gladys, Zigbee",
+        "de": "z. B. Gladys, Zigbee",
+        "es": "p. ej. Gladys, Zigbee"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Separated by commas. A new entry whose title holds one carries it, for the keyword filter of the trigger.",
+        "fr": "Séparés par des virgules. Un nouvel article dont le titre en contient un le porte, pour le filtre mot-clé du déclencheur.",
+        "de": "Durch Kommas getrennt. Ein neuer Artikel, dessen Titel eines enthält, trägt es für den Stichwortfilter des Auslösers.",
+        "es": "Separadas por comas. Un nuevo artículo cuyo título contenga una la lleva, para el filtro de palabra clave del disparador."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": ""
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of names and messages",
+        "fr": "Langue des noms et messages",
+        "de": "Sprache der Namen und Meldungen",
+        "es": "Idioma de nombres y mensajes"
+      },
+      "description": {
+        "en": "Feature names are set when a device is added to Gladys.",
+        "fr": "Les noms des fonctionnalités sont fixés à l'ajout d'un appareil dans Gladys.",
+        "de": "Die Namen der Funktionen werden beim Hinzufügen eines Geräts zu Gladys festgelegt.",
+        "es": "Los nombres de las funciones se fijan al añadir un dispositivo a Gladys."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
       "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "new_entry",
+      "label": {
+        "en": "New entry",
+        "fr": "Nouvel article",
+        "de": "Neuer Artikel",
+        "es": "Nuevo artículo"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "An unread entry arrived in Miniflux (not at the first read, nor the backlog of a feed just added).",
+        "fr": "Un article non lu est arrivé dans Miniflux (ni à la première lecture, ni l'historique d'un flux ajouté).",
+        "de": "Ein ungelesener Artikel ist in Miniflux angekommen (nicht beim ersten Lesen, nicht der Bestand eines neuen Feeds).",
+        "es": "Ha llegado un artículo no leído a Miniflux (ni en la primera lectura, ni el historial de una fuente recién añadida)."
       },
       "fields": [
         {
-          "key": "device",
+          "key": "category",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "required": false,
+          "label": {
+            "en": "Category (empty: all)",
+            "fr": "Catégorie (vide : toutes)",
+            "de": "Kategorie (leer: alle)",
+            "es": "Categoría (vacío: todas)"
+          },
+          "description": {
+            "en": "A category added as a device in Gladys.",
+            "fr": "Une catégorie ajoutée comme appareil dans Gladys.",
+            "de": "Eine als Gerät zu Gladys hinzugefügte Kategorie.",
+            "es": "Una categoría añadida como dispositivo en Gladys."
+          }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "key": "feed",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Feed (empty: all)",
+            "fr": "Flux (vide : tous)",
+            "de": "Feed (leer: alle)",
+            "es": "Fuente (vacío: todas)"
+          },
+          "description": {
+            "en": "The title of the feed, exactly as in Miniflux.",
+            "fr": "Le titre du flux, exactement comme dans Miniflux.",
+            "de": "Der Titel des Feeds, genau wie in Miniflux.",
+            "es": "El título de la fuente, exactamente como en Miniflux."
+          }
+        },
+        {
+          "key": "keyword",
+          "type": "string",
+          "required": false,
+          "label": {
+            "en": "Keyword in the title (empty: any)",
+            "fr": "Mot-clé du titre (vide : tous)",
+            "de": "Stichwort im Titel (leer: alle)",
+            "es": "Palabra clave del título (vacío: todas)"
+          },
+          "description": {
+            "en": "One of the keywords of the configuration.",
+            "fr": "Un des mots-clés de la configuration.",
+            "de": "Eines der Stichwörter der Konfiguration.",
+            "es": "Una de las palabras clave de la configuración."
+          }
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "title",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Title",
+            "fr": "Titre",
+            "de": "Titel",
+            "es": "Título"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link",
+            "fr": "Lien",
+            "de": "Link",
+            "es": "Enlace"
+          }
+        },
+        {
+          "key": "feed",
+          "type": "string",
+          "label": {
+            "en": "Feed",
+            "fr": "Flux",
+            "de": "Feed",
+            "es": "Fuente"
+          }
+        },
+        {
+          "key": "category_name",
+          "type": "string",
+          "label": {
+            "en": "Category",
+            "fr": "Catégorie",
+            "de": "Kategorie",
+            "es": "Categoría"
+          }
+        },
+        {
+          "key": "author",
+          "type": "string",
+          "label": {
+            "en": "Author",
+            "fr": "Auteur",
+            "de": "Autor",
+            "es": "Autor"
+          }
+        },
+        {
+          "key": "keyword",
+          "type": "string",
+          "label": {
+            "en": "Keyword found",
+            "fr": "Mot-clé trouvé",
+            "de": "Gefundenes Stichwort",
+            "es": "Palabra clave encontrada"
+          }
+        },
+        {
+          "key": "published",
+          "type": "string",
+          "label": {
+            "en": "Published at (ISO)",
+            "fr": "Publié le (ISO)",
+            "de": "Veröffentlicht am (ISO)",
+            "es": "Publicado el (ISO)"
+          }
+        },
+        {
+          "key": "entry_id",
+          "type": "number",
+          "label": {
+            "en": "Entry id",
+            "fr": "Identifiant de l'article",
+            "de": "Artikel-ID",
+            "es": "Id. del artículo"
+          }
+        }
+      ]
+    },
+    {
+      "key": "feed_error",
+      "label": {
+        "en": "Feed in error",
+        "fr": "Flux en erreur",
+        "de": "Feed mit Fehler",
+        "es": "Fuente con error"
+      },
+      "description": {
+        "en": "Miniflux failed to read a feed that worked until then.",
+        "fr": "Miniflux n'arrive plus à lire un flux qui fonctionnait jusque-là.",
+        "de": "Miniflux kann einen Feed nicht mehr lesen, der bisher funktioniert hat.",
+        "es": "Miniflux ya no consigue leer una fuente que funcionaba hasta ahora."
+      },
+      "fields": [
+        {
+          "key": "category",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Category (empty: all)",
+            "fr": "Catégorie (vide : toutes)",
+            "de": "Kategorie (leer: alle)",
+            "es": "Categoría (vacío: todas)"
+          },
+          "description": {
+            "en": "A category added as a device in Gladys.",
+            "fr": "Une catégorie ajoutée comme appareil dans Gladys.",
+            "de": "Eine als Gerät zu Gladys hinzugefügte Kategorie.",
+            "es": "Una categoría añadida como dispositivo en Gladys."
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "feed",
+          "type": "string",
+          "label": {
+            "en": "Feed",
+            "fr": "Flux",
+            "de": "Feed",
+            "es": "Fuente"
+          }
+        },
+        {
+          "key": "category_name",
+          "type": "string",
+          "label": {
+            "en": "Category",
+            "fr": "Catégorie",
+            "de": "Kategorie",
+            "es": "Categoría"
+          }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": {
+            "en": "Error message",
+            "fr": "Message d'erreur",
+            "de": "Fehlermeldung",
+            "es": "Mensaje de error"
+          }
+        },
+        {
+          "key": "error_count",
+          "type": "number",
+          "label": {
+            "en": "Failed checks",
+            "fr": "Vérifications échouées",
+            "de": "Fehlgeschlagene Prüfungen",
+            "es": "Comprobaciones fallidas"
+          }
+        },
+        {
+          "key": "site",
+          "type": "string",
+          "label": {
+            "en": "Site address",
+            "fr": "Adresse du site",
+            "de": "Adresse der Website",
+            "es": "Dirección del sitio"
+          }
+        },
+        {
+          "key": "feed_id",
+          "type": "number",
+          "label": {
+            "en": "Feed id",
+            "fr": "Identifiant du flux",
+            "de": "Feed-ID",
+            "es": "Id. de la fuente"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "mark_category_read",
+      "label": {
+        "en": "Mark a Miniflux category as read",
+        "fr": "Marquer une catégorie Miniflux comme lue",
+        "de": "Miniflux-Kategorie als gelesen markieren",
+        "es": "Marcar una categoría de Miniflux como leída"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Marks every unread entry of a category as read; the Miniflux device: of every category.",
+        "fr": "Marque comme lus tous les articles non lus d'une catégorie ; l'appareil Miniflux : de toutes.",
+        "de": "Markiert alle ungelesenen Artikel einer Kategorie als gelesen; das Miniflux-Gerät: aller Kategorien.",
+        "es": "Marca como leídos todos los artículos no leídos de una categoría; el dispositivo Miniflux: de todas."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
+          "key": "category",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "required": true,
+          "label": {
+            "en": "Category",
+            "fr": "Catégorie",
+            "de": "Kategorie",
+            "es": "Categoría"
+          },
+          "description": {
+            "en": "A category added as a device, or the Miniflux device for everything.",
+            "fr": "Une catégorie ajoutée comme appareil, ou l'appareil Miniflux pour tout.",
+            "de": "Eine als Gerät hinzugefügte Kategorie, oder das Miniflux-Gerät für alles.",
+            "es": "Una categoría añadida como dispositivo, o el dispositivo Miniflux para todo."
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Entries marked as read",
+            "fr": "Articles marqués comme lus",
+            "de": "Als gelesen markierte Artikel",
+            "es": "Artículos marcados como leídos"
+          }
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "label": {
+            "en": "Category",
+            "fr": "Catégorie",
+            "de": "Kategorie",
+            "es": "Categoría"
+          }
+        }
+      ]
+    },
+    {
+      "key": "mark_entries_read",
+      "label": {
+        "en": "Mark Miniflux entries as read",
+        "fr": "Marquer des articles Miniflux comme lus",
+        "de": "Miniflux-Artikel als gelesen markieren",
+        "es": "Marcar artículos de Miniflux como leídos"
+      },
+      "description": {
+        "en": "Marks one or more entries as read, e.g. the entry id of the New entry trigger.",
+        "fr": "Marque un ou plusieurs articles comme lus, par exemple l'identifiant donné par le déclencheur Nouvel article.",
+        "de": "Markiert einen oder mehrere Artikel als gelesen, z. B. die Artikel-ID des Auslösers Neuer Artikel.",
+        "es": "Marca uno o varios artículos como leídos, p. ej. el id. del artículo del disparador Nuevo artículo."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "entry_ids",
+          "type": "string",
+          "required": true,
+          "label": {
+            "en": "Entry ids",
+            "fr": "Identifiants d'articles",
+            "de": "Artikel-IDs",
+            "es": "Ids. de artículos"
+          },
+          "placeholder": {
+            "en": "e.g. 1234, 1235",
+            "fr": "ex. 1234, 1235",
+            "de": "z. B. 1234, 1235",
+            "es": "p. ej. 1234, 1235"
+          },
+          "description": {
+            "en": "Separated by commas; insert the entry id of the trigger.",
+            "fr": "Séparés par des virgules ; insérez l'identifiant de l'article du déclencheur.",
+            "de": "Durch Kommas getrennt; füge die Artikel-ID des Auslösers ein.",
+            "es": "Separados por comas; inserte el id. del artículo del disparador."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Entries marked as read",
+            "fr": "Articles marqués comme lus",
+            "de": "Als gelesen markierte Artikel",
+            "es": "Artículos marcados como leídos"
+          }
+        }
+      ]
+    },
+    {
+      "key": "refresh_feeds",
+      "label": {
+        "en": "Refresh the Miniflux feeds",
+        "fr": "Actualiser les flux Miniflux",
+        "de": "Miniflux-Feeds aktualisieren",
+        "es": "Actualizar las fuentes de Miniflux"
+      },
+      "description": {
+        "en": "Miniflux fetches every feed, or those of a category, now; the new entries are read once it is done.",
+        "fr": "Miniflux récupère tous les flux, ou ceux d'une catégorie, maintenant ; les nouveaux articles sont lus ensuite.",
+        "de": "Miniflux ruft jetzt alle Feeds ab, oder die einer Kategorie; die neuen Artikel werden danach gelesen.",
+        "es": "Miniflux obtiene ahora todas las fuentes, o las de una categoría; los nuevos artículos se leen después."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "category",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Category (empty: all)",
+            "fr": "Catégorie (vide : toutes)",
+            "de": "Kategorie (leer: alle)",
+            "es": "Categoría (vacío: todas)"
+          },
+          "description": {
+            "en": "A category added as a device in Gladys.",
+            "fr": "Une catégorie ajoutée comme appareil dans Gladys.",
+            "de": "Eine als Gerät zu Gladys hinzugefügte Kategorie.",
+            "es": "Una categoría añadida como dispositivo en Gladys."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Feeds refreshed",
+            "fr": "Flux actualisés",
+            "de": "Aktualisierte Feeds",
+            "es": "Fuentes actualizadas"
+          }
+        }
+      ]
+    },
+    {
+      "key": "read_unread",
+      "label": {
+        "en": "Read the unread Miniflux titles",
+        "fr": "Lire les titres non lus de Miniflux",
+        "de": "Ungelesene Miniflux-Titel lesen",
+        "es": "Leer los títulos no leídos de Miniflux"
+      },
+      "description": {
+        "en": "Reads the newest unread entries, of every category or of one, to send them in a message.",
+        "fr": "Lit les articles non lus les plus récents, de toutes les catégories ou d'une seule, pour les envoyer dans un message.",
+        "de": "Liest die neuesten ungelesenen Artikel, aller Kategorien oder einer, um sie in einer Nachricht zu senden.",
+        "es": "Lee los artículos no leídos más recientes, de todas las categorías o de una, para enviarlos en un mensaje."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "category",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Category (empty: all)",
+            "fr": "Catégorie (vide : toutes)",
+            "de": "Kategorie (leer: alle)",
+            "es": "Categoría (vacío: todas)"
+          },
+          "description": {
+            "en": "A category added as a device in Gladys.",
+            "fr": "Une catégorie ajoutée comme appareil dans Gladys.",
+            "de": "Eine als Gerät zu Gladys hinzugefügte Kategorie.",
+            "es": "Una categoría añadida como dispositivo en Gladys."
+          }
+        },
+        {
+          "key": "count",
+          "type": "select",
+          "required": false,
+          "default": "5",
+          "label": {
+            "en": "Number of entries",
+            "fr": "Nombre d'articles",
+            "de": "Anzahl der Artikel",
+            "es": "Número de artículos"
+          },
+          "options": [
+            {
+              "value": "1",
+              "label": {
+                "en": "1",
+                "fr": "1",
+                "de": "1",
+                "es": "1"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3",
+                "fr": "3",
+                "de": "3",
+                "es": "3"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5",
+                "fr": "5",
+                "de": "5",
+                "es": "5"
+              }
+            },
+            {
+              "value": "10",
+              "label": {
+                "en": "10",
+                "fr": "10",
+                "de": "10",
+                "es": "10"
+              }
+            }
+          ]
+        },
+        {
+          "key": "mark_read",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "required": false,
+          "label": {
+            "en": "Then mark them as read",
+            "fr": "Puis les marquer comme lus",
+            "de": "Danach als gelesen markieren",
+            "es": "Después marcarlos como leídos"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Entries read",
+            "fr": "Articles lus",
+            "de": "Gelesene Artikel",
+            "es": "Artículos leídos"
+          }
+        },
+        {
+          "key": "unread",
+          "type": "number",
+          "label": {
+            "en": "Unread entries in all",
+            "fr": "Articles non lus en tout",
+            "de": "Ungelesene Artikel insgesamt",
+            "es": "Artículos no leídos en total"
+          }
+        },
+        {
+          "key": "titles",
+          "type": "string",
+          "label": {
+            "en": "Titles, one per line",
+            "fr": "Titres, un par ligne",
+            "de": "Titel, einer pro Zeile",
+            "es": "Títulos, uno por línea"
+          }
+        },
+        {
+          "key": "latest_title",
+          "type": "string",
+          "label": {
+            "en": "Title of the newest entry",
+            "fr": "Titre de l'article le plus récent",
+            "de": "Titel des neuesten Artikels",
+            "es": "Título del artículo más reciente"
+          }
+        },
+        {
+          "key": "latest_url",
+          "type": "string",
+          "label": {
+            "en": "Link of the newest entry",
+            "fr": "Lien de l'article le plus récent",
+            "de": "Link des neuesten Artikels",
+            "es": "Enlace del artículo más reciente"
+          }
+        },
+        {
+          "key": "latest_feed",
+          "type": "string",
+          "label": {
+            "en": "Feed of the newest entry",
+            "fr": "Flux de l'article le plus récent",
+            "de": "Feed des neuesten Artikels",
+            "es": "Fuente del artículo más reciente"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "unread",
+      "label": {
+        "en": "Miniflux",
+        "fr": "Miniflux",
+        "de": "Miniflux",
+        "es": "Miniflux"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "The newest unread entries, with refresh and mark as read buttons.",
+        "fr": "Les derniers articles non lus, avec boutons actualiser et marquer lu.",
+        "de": "Die neuesten ungelesenen Artikel, mit Tasten Aktualisieren und Gelesen.",
+        "es": "Los últimos artículos no leídos, con botones actualizar y marcar leído."
+      },
+      "icon": "rss",
+      "action_timeout_seconds": 30,
+      "settings": [
+        {
+          "key": "category",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Category (empty: all)",
+            "fr": "Catégorie (vide : toutes)",
+            "de": "Kategorie (leer: alle)",
+            "es": "Categoría (vacío: todas)"
+          },
+          "description": {
+            "en": "Pick a category added as a device to show it alone.",
+            "fr": "Choisissez une catégorie ajoutée comme appareil pour l'afficher seule.",
+            "de": "Wähle eine als Gerät hinzugefügte Kategorie, um nur sie anzuzeigen.",
+            "es": "Elija una categoría añadida como dispositivo para mostrarla sola."
+          }
+        }
+      ]
     }
   ]
 }

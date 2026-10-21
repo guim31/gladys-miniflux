@@ -1,0 +1,9 @@
+{
+  "request": "PUT /v1/categories/999/mark-all-as-read",
+  "status": 404,
+  "contentType": "application/json",
+  "body": {
+    "error_message": "resource not found"
+  },
+  "recorded": "Miniflux 2.3.4 (ghcr.io/miniflux/miniflux), 2026-10-21, test feeds served on a private network"
+}
