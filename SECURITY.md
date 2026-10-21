@@ -30,6 +30,15 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores the Miniflux address and API key in the configuration
+of Gladys (the key is a `secret` field, never sent back to the browser) and,
+under `/data/miniflux-state.json`, only the ids it needs for its triggers (user
+id, last entry id seen, feed ids). It never logs the API key, the feed URLs or
+the entries. It talks to the Miniflux address you enter, and to nothing else.
+The API key gives full access to the Miniflux account: create a dedicated one
+for Gladys, so it can be revoked alone.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and Miniflux itself (see its
+[security policy](https://github.com/miniflux/v2/security/policy)).

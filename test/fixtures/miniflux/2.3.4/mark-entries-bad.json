@@ -1,0 +1,9 @@
+{
+  "request": "PUT /v1/entries",
+  "body": {
+    "error_message": "the list of entries cannot be empty"
+  },
+  "status": 400,
+  "contentType": "application/json",
+  "recorded": "Miniflux 2.3.4 (ghcr.io/miniflux/miniflux), 2026-10-21, test feeds served on a private network"
+}

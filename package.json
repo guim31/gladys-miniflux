@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-miniflux",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Miniflux integration for Gladys Assistant: unread counts, new entries, feeds in error, and entries marked as read from scenes.",
   "type": "module",
   "main": "index.js",
   "scripts": {

@@ -1,0 +1,9 @@
+{
+  "request": "GET /v1/me",
+  "status": 401,
+  "contentType": "application/json",
+  "body": {
+    "error_message": "access unauthorized"
+  },
+  "recorded": "Miniflux 2.3.4 (ghcr.io/miniflux/miniflux), 2026-10-21, test feeds served on a private network"
+}

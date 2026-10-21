@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/hub.test.js              # one file
+node --test --test-name-pattern "widget"  # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -32,15 +32,20 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+src/app.js                        registers every SDK handler on the hub (shared with the tests)
+src/hub.js                        the link to Miniflux: timer, devices, states, triggers, status, actions
+src/devices.js                    the Miniflux device and the category devices, their states
+src/miniflux/client.js            REST API v1 (X-Auth-Token), errors by kind
+src/miniflux/model.js             entries and feeds -> plain values; keywords, entry ids
+src/store.js                      /data/miniflux-state.json: what the triggers already saw
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/widgets.js                    dashboard widget and its buttons (manifest `widgets`)
+src/texts.js                      every text produced by the container, in four languages
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (same sections)
+test/                             node --test, SDK fake Gladys + fake Miniflux (test/helpers/)
+test/fixtures/miniflux/2.3.4/     bodies recorded on a real Miniflux 2.3.4
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,10 +75,49 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, widget content, feature names, and
+  `docs/{en,fr,de,es}.md`, kept in sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
+
+## Miniflux
+
+- **API v1, API key** in the `X-Auth-Token` header, created in Settings → API
+  Keys, or by `POST /v1/api-keys` `{ description }` with HTTP Basic auth
+  (handy to script a test server; the first user comes from `CREATE_ADMIN=1`,
+  `ADMIN_USERNAME`, `ADMIN_PASSWORD`). `GET /v1/version` exists.
+- Errors are `{ "error_message": ... }`: 401 `access unauthorized`, 404
+  `resource not found`, 400 `the list of entries cannot be empty`. An unknown
+  route is a plain-text 404. Write calls answer **204 with an empty body**.
+- `GET /v1/categories` always holds the default category (`All` on a fresh
+  install, renamable). `?counts=true` adds `total_unread`/`feed_count` but
+  sorts by unread count: the integration sums `GET /v1/feeds/counters` per
+  feed instead (a feed without unread entries is absent from `unreads`).
+- `GET /v1/entries` embeds the **whole feed** in every entry, its `username`
+  and `password` fields included, and the full HTML content: never log or
+  store an entry, keep pages small (`limit`). Entry ids only grow:
+  `after_entry_id` lists the arrivals since an id. The "New entry" trigger
+  keeps the last id and the known feed ids (`/data/miniflux-state.json`): a
+  feed missing from the previous read is a new feed, its backlog is not
+  announced.
+- `parsing_error_count` grows at each failed check; past
+  `POLLING_PARSING_ERROR_LIMIT` (3) Miniflux stops checking the feed until it
+  is refreshed by hand. The "Feed in error" trigger fires on the 0 → >0
+  transition only; the feeds in error are stored too.
+- `PUT /v1/feeds/refresh` only queues the feeds (204 at once): the hub reads
+  again 30 s later. `PUT /v1/users/{id}/mark-all-as-read` marks everything.
+- Since Miniflux 2.3, the fetcher refuses feeds on private addresses
+  (`FETCHER_ALLOW_PRIVATE_NETWORKS=1` to allow them): needed for a test server
+  serving its own feeds, and the reason a user's LAN feed may stay in error.
+- Widget card links must be https: the article and `<base>/unread/entry/<id>`
+  are offered only when https.
+- Testing with Docker: `ghcr.io/miniflux/miniflux` (port 8080,
+  `DATABASE_URL`, `RUN_MIGRATIONS=1`) and `postgres:16-alpine`; a feed can only
+  be created while it parses: serve a valid file, add the feed, then break the
+  file and `PUT /v1/feeds/{id}/refresh`.
+- Tests on Node 22: the timer of `AbortSignal.timeout` does not hold the event
+  loop; a fake `fetch` that waits for the abort must hold it itself.
 
 ---
 
