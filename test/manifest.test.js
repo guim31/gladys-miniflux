@@ -100,7 +100,7 @@ test('scene action fields and outputs are the ones the code reads and returns', 
     read_unread: { category: categoryDevice(3), count: '3', mark_read: false },
     mark_entries_read: { entry_ids: '1, 2' },
     mark_category_read: { category: categoryDevice(2) },
-    refresh_feeds: {},
+    refresh_feeds: { category: categoryDevice(3) },
   };
   for (const action of manifest.scene_actions) {
     assert.deepEqual(keysOf(action.fields).sort(), Object.keys(samples[action.key]).sort());

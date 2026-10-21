@@ -16,8 +16,10 @@
 //   small, and nothing of an entry is logged;
 // - entry ids only grow (a PostgreSQL sequence): `after_entry_id` lists what
 //   arrived since an id;
-// - `PUT /v1/feeds/refresh` only queues the feeds: the new entries show up
-//   seconds later.
+// - `PUT /v1/feeds/refresh` (and `/categories/{id}/refresh`) only queue the
+//   feeds whose next check is due — most often none ("batch_size=0" in the
+//   Miniflux log); `PUT /v1/feeds/{id}/refresh` fetches that feed now and
+//   answers when it is done (204, or 500 with the parsing error).
 // -----------------------------------------------------------------------------
 
 export const DEFAULT_TIMEOUT = 15_000;
@@ -51,7 +53,7 @@ export class MinifluxClient {
     this.timeout = timeout ?? DEFAULT_TIMEOUT;
   }
 
-  async #send(method, path, body) {
+  async #send(method, path, body, timeout = this.timeout) {
     const headers = { Accept: 'application/json', 'X-Auth-Token': this.token };
     if (body !== undefined) {
       headers['Content-Type'] = 'application/json';
@@ -63,13 +65,13 @@ export class MinifluxClient {
         method,
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),
-        signal: AbortSignal.timeout(this.timeout),
+        signal: AbortSignal.timeout(timeout),
         redirect: 'follow',
       });
       raw = await response.text();
     } catch (err) {
       if (err?.name === 'TimeoutError' || err?.name === 'AbortError') {
-        throw new MinifluxError('timeout', `No answer from Miniflux within ${this.timeout} ms`);
+        throw new MinifluxError('timeout', `No answer from Miniflux within ${timeout} ms`);
       }
       const cause = err?.cause?.code ?? err?.cause?.message ?? err?.message ?? 'error';
       throw new MinifluxError('unreachable', `Miniflux unreachable (${cause})`);
@@ -191,7 +193,8 @@ export class MinifluxClient {
     await this.#send('PUT', `/users/${userId}/mark-all-as-read`);
   }
 
-  async refreshFeeds() {
-    await this.#send('PUT', '/feeds/refresh');
+  /** Fetch one feed now (answers once Miniflux read it). */
+  async refreshFeed(feedId, timeout) {
+    await this.#send('PUT', `/feeds/${feedId}/refresh`, undefined, timeout);
   }
 }

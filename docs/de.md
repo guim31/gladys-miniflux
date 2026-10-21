@@ -83,8 +83,9 @@ Artikel werden pro Lesen gemeldet.
 - **Miniflux-Artikel als gelesen markieren**: eine oder mehrere Artikel-IDs,
   typischerweise die Artikel-ID des Auslösers „Neuer Artikel“. Ergebnis:
   markierte Artikel.
-- **Miniflux-Feeds aktualisieren**: Miniflux prüft jetzt alle Feeds; die neuen
-  Artikel werden 30 Sekunden später gelesen.
+- **Miniflux-Feeds aktualisieren**: Miniflux ruft jetzt alle Feeds ab (oder die
+  einer Kategorie), vier auf einmal; die neuen Artikel werden danach gelesen.
+  Ergebnis: aktualisierte Feeds.
 - **Ungelesene Miniflux-Titel lesen**: die neuesten ungelesenen Artikel (1 bis
   10), aller Kategorien oder einer, auf Wunsch danach als gelesen markiert.
   Ergebnisse: gelesene Anzahl, ungelesene Artikel insgesamt, Titel einer pro

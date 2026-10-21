@@ -163,7 +163,7 @@ async function action(hub, { actionKey, settings }) {
   const language = hub.language;
   try {
     if (actionKey === ACTIONS.refresh) {
-      await hub.refreshFeeds();
+      await hub.refreshFeeds(settings?.category);
       return { message: each(DONE_TEXT, 'refresh') };
     }
     if (actionKey === ACTIONS.read) {

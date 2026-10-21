@@ -27,7 +27,7 @@ export function createMiniflux({ entries = true } = {}) {
     down: false,
     html: false,
     requests: [],
-    refreshed: 0,
+    refreshed: [],
     clock: Date.parse('2026-10-21T19:40:00.000Z'),
   };
   const answer = (status, body, type = 'application/json') =>
@@ -179,9 +179,13 @@ export function createMiniflux({ entries = true } = {}) {
       }
       return answer(204);
     }
-    if (method === 'PUT' && path === '/feeds/refresh') {
-      state.refreshed += 1;
-      return answer(204);
+    match = path.match(/^\/feeds\/(\d+)\/refresh$/);
+    if (method === 'PUT' && match && feedById(Number(match[1]))) {
+      const feed = feedById(Number(match[1]));
+      state.refreshed.push(feed.id);
+      return feed.parsing_error_count > 0
+        ? answer(500, { error_message: 'parser: unable to detect feed format' })
+        : answer(204);
     }
     return answer(404, fixture('not-found').body, 'text/plain; charset=utf-8');
   }

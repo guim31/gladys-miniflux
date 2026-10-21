@@ -18,9 +18,9 @@ export const SCENE_ACTIONS = {
     const done = await hub.markEntries(fields.entry_ids);
     return { count: done.count };
   },
-  async refresh_feeds(hub) {
-    await hub.refreshFeeds();
-    return {};
+  async refresh_feeds(hub, { fields = {} }) {
+    const done = await hub.refreshFeeds(fields.category);
+    return { count: done.count };
   },
   async read_unread(hub, { fields = {} }) {
     const { entries, total } = await hub.readUnread({

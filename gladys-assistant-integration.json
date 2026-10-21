@@ -606,12 +606,44 @@
         "es": "Actualizar las fuentes de Miniflux"
       },
       "description": {
-        "en": "Asks Miniflux to check every feed now; the new entries are read 30 seconds later.",
-        "fr": "Demande à Miniflux de vérifier tous les flux maintenant ; les nouveaux articles sont lus 30 secondes après.",
-        "de": "Bittet Miniflux, jetzt alle Feeds zu prüfen; die neuen Artikel werden 30 Sekunden später gelesen.",
-        "es": "Pide a Miniflux que compruebe ahora todas las fuentes; los nuevos artículos se leen 30 segundos después."
+        "en": "Miniflux fetches every feed, or those of a category, now; the new entries are read once it is done.",
+        "fr": "Miniflux récupère tous les flux, ou ceux d'une catégorie, maintenant ; les nouveaux articles sont lus ensuite.",
+        "de": "Miniflux ruft jetzt alle Feeds ab, oder die einer Kategorie; die neuen Artikel werden danach gelesen.",
+        "es": "Miniflux obtiene ahora todas las fuentes, o las de una categoría; los nuevos artículos se leen después."
       },
-      "timeout_seconds": 30
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "category",
+          "type": "select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Category (empty: all)",
+            "fr": "Catégorie (vide : toutes)",
+            "de": "Kategorie (leer: alle)",
+            "es": "Categoría (vacío: todas)"
+          },
+          "description": {
+            "en": "A category added as a device in Gladys.",
+            "fr": "Une catégorie ajoutée comme appareil dans Gladys.",
+            "de": "Eine als Gerät zu Gladys hinzugefügte Kategorie.",
+            "es": "Una categoría añadida como dispositivo en Gladys."
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "Feeds refreshed",
+            "fr": "Flux actualisés",
+            "de": "Aktualisierte Feeds",
+            "es": "Fuentes actualizadas"
+          }
+        }
+      ]
     },
     {
       "key": "read_unread",

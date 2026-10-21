@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { validateWidgetContent } from '@gladysassistant/integration-sdk';
 import { MemoryStore } from '../src/store.js';
-import { HOST, TOKEN, createMiniflux, settle } from './helpers/fakeMiniflux.js';
+import { HOST, TOKEN, createMiniflux } from './helpers/fakeMiniflux.js';
 import {
   USER,
   categoryDevice,
@@ -235,19 +235,26 @@ test('mark entries as read: the id of a trigger, or a list', async (t) => {
   assert.match(ack.error, /identifiants/);
 });
 
-test('refresh the feeds, then read Miniflux again a little later', async (t) => {
+test('refresh the feeds: each feed of the scope is fetched now, then Miniflux is read', async (t) => {
   const world = await createWorld();
   t.after(() => world.app.stop());
-  const ack = await world.fake.sceneAction('refresh_feeds', {});
+  let ack = await world.fake.sceneAction('refresh_feeds', { category: categoryDevice(TECH) });
   assert.equal(ack.success, true, ack.error);
-  assert.equal(world.server.state.refreshed, 1);
-  world.server.addEntry({ title: 'Fetched by the refresh' });
-  await settle(60);
-  await world.hub.refreshing;
+  assert.deepEqual(ack.data.outputs, { count: 2 });
+  world.server.addEntry({ feedId: 2, title: 'Fetched by the refresh' });
+  await world.hub.refreshingFeeds;
+  assert.deepEqual(world.server.state.refreshed.sort(), [2, 3], 'the broken one too');
   assert.deepEqual(
     events(world.fake).map((e) => e.data.title),
     ['Fetched by the refresh'],
   );
+  ack = await world.fake.sceneAction('refresh_feeds', {});
+  assert.deepEqual(ack.data.outputs, { count: 3 });
+  await world.hub.refreshingFeeds;
+  const widget = await world.fake.widgetAction('unread', 'refresh', {}, { settings: {} });
+  assert.equal(widget.success, true, widget.error);
+  await world.hub.refreshingFeeds;
+  assert.equal(world.server.state.refreshed.length, 8);
 });
 
 test('read the unread titles, of all or one category, and mark them as read', async (t) => {

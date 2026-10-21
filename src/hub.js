@@ -45,8 +45,8 @@ export const DEFAULT_TIMINGS = {
   requestTimeout: 15_000,
   // How long the entries read for a widget are reused.
   widgetCache: 60_000,
-  // "Refresh the feeds" only queues them in Miniflux: read it again after that.
-  afterRefresh: 30_000,
+  // A forced refresh fetches the feed: Miniflux waits up to 20 s for it.
+  feedRefreshTimeout: 60_000,
 };
 
 // The entries asked since the previous read: past that many (an import, a
@@ -57,6 +57,9 @@ export const MAX_EVENTS_PER_READ = 10;
 // Reads after which an event Gladys keeps refusing is given up.
 export const MAX_TRIES = 3;
 export const MAX_READ = 10;
+// A forced refresh fetches that many feeds at once, and that many at most.
+export const FEED_REFRESH_PARALLEL = 4;
+export const MAX_FEED_REFRESH = 500;
 
 /** An Error carrying a coded, multi-language message. */
 export class CommandError extends Error {
@@ -109,7 +112,8 @@ export class Hub {
     this.widgetLists = new Map();
     this.configuring = Promise.resolve();
     this.refreshTimer = null;
-    this.laterTimer = null;
+    /** the forced refresh running, or null */
+    this.refreshingFeeds = null;
     this.refreshing = null;
     this.refreshAgain = false;
     this.widgetRefreshAt = 0;
@@ -201,7 +205,6 @@ export class Hub {
   async stop() {
     this.stopped = true;
     clearInterval(this.refreshTimer);
-    clearTimeout(this.laterTimer);
     clearTimeout(this.widgetTimer);
     this.refreshTimer = null;
     await this.store.flush();
@@ -229,18 +232,6 @@ export class Hub {
       this.refreshing = null;
     });
     return this.refreshing;
-  }
-
-  /** A read a little later (after "Refresh the feeds"), once. */
-  refreshLater(delay = this.timings.afterRefresh) {
-    clearTimeout(this.laterTimer);
-    this.laterTimer = setTimeout(() => {
-      this.laterTimer = null;
-      if (!this.stopped) {
-        this.refresh().catch(() => {});
-      }
-    }, delay);
-    this.laterTimer.unref?.();
   }
 
   async #refreshOnce() {
@@ -806,16 +797,48 @@ export class Hub {
     return { count: ids.length };
   }
 
-  /** "Refresh the feeds": queued in Miniflux, read again a little later. */
-  async refreshFeeds() {
+  /**
+   * "Refresh the feeds": Miniflux fetches every feed (of a category) now,
+   * FEED_REFRESH_PARALLEL at a time, then the hub reads it again. Runs in the
+   * background: the action answers at once with the number of feeds.
+   * (`PUT /v1/feeds/refresh` and `/categories/{id}/refresh` only queue the
+   * feeds whose next check is due: most often none.)
+   * @param {unknown} target the external id of a device of the integration
+   * @returns {Promise<{ count: number }>}
+   */
+  async refreshFeeds(target) {
     const client = await this.#ready();
-    try {
-      await client.refreshFeeds();
-    } catch (err) {
-      throw this.#commandError(err, 'http');
+    const scope = this.#scopeOrFail(target);
+    const feeds = this.feeds
+      .filter((f) => !f.disabled && (!scope || f.categoryId === scope.id))
+      .slice(0, MAX_FEED_REFRESH);
+    if (this.refreshingFeeds) {
+      return { count: feeds.length }; // one refresh at a time: this one is on its way
     }
-    logger.info('Feed refresh asked');
-    this.refreshLater();
+    logger.info(`Refreshing ${feeds.length} feed(s)`);
+    const queue = feeds.map((f) => f.id);
+    let failed = 0;
+    const worker = async () => {
+      while (queue.length > 0 && client === this.client && !this.stopped) {
+        try {
+          await client.refreshFeed(queue.shift(), this.timings.feedRefreshTimeout);
+        } catch (err) {
+          // A feed that fails is counted by Miniflux itself ("Feed in error").
+          failed += 1;
+          logger.debug(`Feed not refreshed: ${err.message}`);
+        }
+      }
+    };
+    this.refreshingFeeds = Promise.all(Array.from({ length: FEED_REFRESH_PARALLEL }, worker))
+      .then(() => {
+        logger.debug(`Feeds refreshed, ${failed} failed`);
+        return this.refresh();
+      })
+      .catch(() => {})
+      .finally(() => {
+        this.refreshingFeeds = null;
+      });
+    return { count: feeds.length };
   }
 
   /**

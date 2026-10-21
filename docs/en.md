@@ -74,8 +74,9 @@ another device. At most 10 entries are announced per read.
   the Miniflux device to mark everything. Results: entries marked, category.
 - **Mark Miniflux entries as read**: one or more entry ids, typically the
   entry id of the "New entry" trigger. Result: entries marked.
-- **Refresh the Miniflux feeds**: Miniflux checks every feed now; the new
-  entries are read 30 seconds later.
+- **Refresh the Miniflux feeds**: Miniflux fetches every feed now (or those of
+  a category), four at a time; the new entries are read once it is done.
+  Result: feeds refreshed.
 - **Read the unread Miniflux titles**: the newest unread entries (1 to 10), of
   every category or of one, optionally marked as read afterwards. Results:
   number read, unread entries in all, titles one per line ("Title — Feed"),

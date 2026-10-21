@@ -9,7 +9,7 @@ import { registerHandlers } from '../../src/app.js';
 import { MemoryStore } from '../../src/store.js';
 import { HOST, NOW, TOKEN, createMiniflux, settle } from './fakeMiniflux.js';
 
-export const FAST_TIMINGS = { widgetGap: 0, requestTimeout: 200, afterRefresh: 20 };
+export const FAST_TIMINGS = { widgetGap: 0, requestTimeout: 200, feedRefreshTimeout: 200 };
 
 export async function createWorld({
   server = createMiniflux(),

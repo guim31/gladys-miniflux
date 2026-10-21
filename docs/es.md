@@ -81,8 +81,9 @@ lectura.
 - **Marcar artículos de Miniflux como leídos**: uno o varios ids. de artículo,
   normalmente el id. del artículo del disparador «Nuevo artículo». Resultado:
   artículos marcados.
-- **Actualizar las fuentes de Miniflux**: Miniflux comprueba ahora todas las
-  fuentes; los nuevos artículos se leen 30 segundos después.
+- **Actualizar las fuentes de Miniflux**: Miniflux obtiene ahora todas las
+  fuentes (o las de una categoría), cuatro a la vez; los nuevos artículos se
+  leen después. Resultado: fuentes actualizadas.
 - **Leer los títulos no leídos de Miniflux**: los artículos no leídos más
   recientes (de 1 a 10), de todas las categorías o de una, marcados como
   leídos después si lo desea. Resultados: número leído, artículos no leídos en

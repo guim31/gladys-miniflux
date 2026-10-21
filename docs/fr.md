@@ -79,8 +79,9 @@ sur un autre appareil. Au plus 10 articles sont annoncés par lecture.
 - **Marquer des articles Miniflux comme lus** : un ou plusieurs identifiants
   d'articles, typiquement l'identifiant donné par le déclencheur « Nouvel
   article ». Résultat : articles marqués.
-- **Actualiser les flux Miniflux** : Miniflux vérifie tous les flux
-  maintenant ; les nouveaux articles sont lus 30 secondes après.
+- **Actualiser les flux Miniflux** : Miniflux récupère tous les flux maintenant
+  (ou ceux d'une catégorie), quatre à la fois ; les nouveaux articles sont lus
+  ensuite. Résultat : flux actualisés.
 - **Lire les titres non lus de Miniflux** : les articles non lus les plus
   récents (1 à 10), de toutes les catégories ou d'une seule, marqués comme lus
   ensuite si vous le souhaitez. Résultats : nombre lu, articles non lus en

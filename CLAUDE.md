@@ -105,8 +105,13 @@ test/fixtures/miniflux/2.3.4/     bodies recorded on a real Miniflux 2.3.4
   `POLLING_PARSING_ERROR_LIMIT` (3) Miniflux stops checking the feed until it
   is refreshed by hand. The "Feed in error" trigger fires on the 0 → >0
   transition only; the feeds in error are stored too.
-- `PUT /v1/feeds/refresh` only queues the feeds (204 at once): the hub reads
-  again 30 s later. `PUT /v1/users/{id}/mark-all-as-read` marks everything.
+- `PUT /v1/feeds/refresh` and `PUT /v1/categories/{id}/refresh` only queue
+  the feeds whose next check is due: on a real server right after a check,
+  **none** ("Created a batch of feeds batch_size=0" in its log). Only
+  `PUT /v1/feeds/{id}/refresh` fetches a feed now, and answers when done (204,
+  or 500 with the parsing error): "Refresh the feeds" calls it per feed, four
+  at a time, in the background, then reads Miniflux again.
+  `PUT /v1/users/{id}/mark-all-as-read` marks everything.
 - Since Miniflux 2.3, the fetcher refuses feeds on private addresses
   (`FETCHER_ALLOW_PRIVATE_NETWORKS=1` to allow them): needed for a test server
   serving its own feeds, and the reason a user's LAN feed may stay in error.
