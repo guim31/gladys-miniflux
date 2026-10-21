@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-21
+
 ### Added
 
 - Miniflux in Gladys, over its REST API and an API key: a **Miniflux** device
@@ -23,3 +25,6 @@ the notes of the version's GitHub Release.
 - **Miniflux** dashboard widget: unread count, newest unread entries, Refresh
   and Mark as read buttons.
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-miniflux/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-miniflux/releases/tag/v1.0.0
