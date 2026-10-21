@@ -30,6 +30,10 @@ export function plainText(html, max = 2000) {
     .slice(0, max);
 }
 
+/** A text with its web addresses cut to scheme, host and path (a query may hold a token). */
+export const scrubUrls = (text) =>
+  text.replace(/\bhttps?:\/\/[^\s"'<>]+/gi, (url) => siteOf(url.replace(/[).,;:]+$/, '')) || 'URL');
+
 /** The site address of a feed, without query string (it may hold a token). */
 export function siteOf(url) {
   try {
@@ -77,7 +81,7 @@ export function summarizeFeed(raw) {
     category: str(raw.category?.title, 200),
     disabled: raw.disabled === true,
     errorCount: errors,
-    error: errors > 0 ? str(raw.parsing_error_message, 300) : '',
+    error: errors > 0 ? scrubUrls(str(raw.parsing_error_message, 1000)).slice(0, 300) : '',
   };
 }
 

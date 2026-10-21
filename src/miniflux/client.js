@@ -22,6 +22,8 @@
 //   answers when it is done (204, or 500 with the parsing error).
 // -----------------------------------------------------------------------------
 
+import { scrubUrls } from './model.js';
+
 export const DEFAULT_TIMEOUT = 15_000;
 
 export class MinifluxError extends Error {
@@ -113,7 +115,7 @@ export class MinifluxClient {
             : 'http';
     return new MinifluxError(
       kind,
-      `${path.split('?')[0]}: ${detail.replace(/\s+/g, ' ').slice(0, 120)}`,
+      `${path.split('?')[0]}: ${scrubUrls(detail).replace(/\s+/g, ' ').slice(0, 120)}`,
       status,
     );
   }

@@ -1,8 +1,8 @@
 // -----------------------------------------------------------------------------
-// Small persistence under /data (the only writable path of the container): the
-// highest link id already seen by the "New link" trigger, so a
-// restart does not announce the same links again. Losing the file is harmless: the next
-// read becomes a silent baseline again.
+// Small persistence under /data (the only writable path of the container):
+// what the triggers already saw (user, server, last entry id, feed ids, feeds
+// in error), so a restart does not announce the same entries again. Losing
+// the file is harmless: the next read becomes a silent baseline again.
 // (Adapted from guim31/gladys-pihole.)
 // -----------------------------------------------------------------------------
 

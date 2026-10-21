@@ -304,7 +304,11 @@ test('the widget: counts, the newest unread entries, two buttons', async (t) => 
   );
   assert.equal(list.items[1].links[0].url, 'https://flaky.example.org/weather');
   assert.equal(refresh.action.key, 'refresh');
-  assert.deepEqual(read.action, { key: 'mark_read', confirm: true });
+  assert.deepEqual(read.action, {
+    key: 'mark_read',
+    confirm: true,
+    params: { entry_ids: '3,4,1,5,2' },
+  });
 
   content = (
     await world.fake.widgetGet('unread', {
@@ -315,14 +319,19 @@ test('the widget: counts, the newest unread entries, two buttons', async (t) => 
   assert.deepEqual([content.components[0].label, content.components[0].value], ['News', 2]);
   assert.equal(content.components[1].type, 'card-list', 'no feed in error in News');
 
-  const ack = await world.fake.widgetAction(
-    'unread',
-    'mark_read',
-    {},
-    { settings: { category: categoryDevice(NEWS) } },
-  );
+  // An entry arrives after the widget was drawn: the tap leaves it unread.
+  world.server.addEntry({ feedId: 1, title: 'Not seen yet' });
+  const button = content.components.find((c) => c.action?.key === 'mark_read');
+  const ack = await world.fake.widgetAction('unread', 'mark_read', button.action.params, {
+    settings: { category: categoryDevice(NEWS) },
+  });
   assert.equal(ack.success, true, ack.error);
-  assert.equal(world.server.state.entries.filter((e) => e.status === 'unread').length, 3);
+  assert.deepEqual(
+    world.server.state.entries.filter((e) => e.status === 'unread').map((e) => e.title),
+    ['Gladys 5.2 is out', 'Weather of the week', 'Zigbee tips', 'Not seen yet'],
+  );
+  world.server.state.entries.at(-1).status = 'read';
+  await world.hub.refresh();
   content = (
     await world.fake.widgetGet('unread', {
       language: 'en',
@@ -333,17 +342,63 @@ test('the widget: counts, the newest unread entries, two buttons', async (t) => 
   assert.ok(!content.components.some((c) => c.action?.key === 'mark_read'), 'nothing to mark');
 });
 
-test('the widget set to a deleted category never marks everything', async (t) => {
+test('the widget Mark as read without the listed ids marks nothing', async (t) => {
   const world = await createWorld();
   t.after(() => world.app.stop());
-  world.server.state.categories = world.server.state.categories.filter((c) => c.id !== NEWS);
-  await world.hub.refresh();
-  const settings = { category: categoryDevice(NEWS) };
-  const content = (await world.fake.widgetGet('unread', { settings })).data.content;
-  assert.ok(!content.components.some((c) => c.action?.key === 'mark_read'));
-  const ack = await world.fake.widgetAction('unread', 'mark_read', {}, { settings });
+  const ack = await world.fake.widgetAction('unread', 'mark_read', {}, { settings: {} });
   assert.equal(ack.success, false);
   assert.equal(world.server.state.entries.filter((e) => e.status === 'unread').length, 5);
+});
+
+test('another Miniflux server is a new baseline, even for the same user id', async (t) => {
+  const store = new MemoryStore();
+  const server = createMiniflux();
+  const first = await createWorld({ server, store });
+  await first.app.stop();
+  assert.equal(store.data.server, HOST);
+  server.addEntry({ title: 'On the other server' });
+  const second = await createWorld({
+    server,
+    store,
+    config: { url: 'http://192.0.2.41:8080', api_key: TOKEN },
+  });
+  t.after(() => second.app.stop());
+  assert.equal(second.fake.sceneEvents.length, 0);
+});
+
+test('a refused event does not turn the backlog of a new feed into news', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const publish = world.gladys.publishSceneEvent.bind(world.gladys);
+  let down = true;
+  world.gladys.publishSceneEvent = async (...args) => {
+    if (down) {
+      throw Object.assign(new Error('Gladys restarting'), { status: 503 });
+    }
+    return publish(...args);
+  };
+  world.server.addEntry({ feedId: 1, title: 'Real news' });
+  const feed = world.server.addFeed({ title: 'Brand new' });
+  world.server.addEntry({ feedId: feed.id, title: 'Backlog' });
+  await world.hub.refresh();
+  down = false;
+  await world.hub.refresh();
+  assert.deepEqual(
+    events(world.fake).map((e) => e.data.title),
+    ['Real news'],
+  );
+});
+
+test('feed errors are passed on without the query string of a URL', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  world.server.breakFeed(
+    2,
+    'Get "https://blog.example.org/feed?key=s3cr3t": dial tcp: i/o timeout',
+  );
+  await world.hub.refresh();
+  const [event] = events(world.fake, 'feed_error');
+  assert.equal(event.data.error, 'Get "https://blog.example.org/feed": dial tcp: i/o timeout');
 });
 
 test('connection status: missing settings, refused key, down and back, not Miniflux', async (t) => {

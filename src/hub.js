@@ -136,6 +136,7 @@ export class Hub {
       Number.isInteger(saved.user) && Number.isInteger(saved.lastId) && saved.lastId >= 0
         ? {
             user: saved.user,
+            server: typeof saved.server === 'string' ? saved.server : '',
             lastId: saved.lastId,
             feeds: ints(saved.feeds),
             errors: ints(saved.errors),
@@ -250,7 +251,7 @@ export class Hub {
     let recent;
     try {
       user = this.user ?? (await client.me());
-      const known = this.seen?.user === user.id ? this.seen : null;
+      const known = this.#known(user.id);
       [categories, feeds, unreads, recent] = await Promise.all([
         client.categories(),
         client.feeds(),
@@ -301,8 +302,20 @@ export class Hub {
     await this.updateConnectionStatus();
   }
 
+  /**
+   * What the triggers saw of this user on this server: user ids are small
+   * integers (the admin is 1 everywhere), another server is a new baseline.
+   */
+  #known(userId) {
+    const seen = this.seen;
+    return seen?.user === userId && seen.server === (this.config.url ?? '') ? seen : null;
+  }
+
   /** Devices, states and widget from the last read. */
   async #update() {
+    if (!this.user) {
+      return; // nothing read yet: never replace the Discovery list by nothing
+    }
     await this.publishDevices();
     await this.publishStates();
     this.refreshWidget();
@@ -344,12 +357,13 @@ export class Hub {
    */
   async #announce(recent) {
     const userId = this.user.id;
-    const known = this.seen?.user === userId ? this.seen : null;
+    const known = this.#known(userId);
     const feedIds = this.feeds.map((f) => f.id);
     const errorsNow = this.feeds.filter(inError).map((f) => f.id);
     const ids = recent.entries.map((e) => e.id).filter(Number.isInteger);
     let lastId = Math.max(known?.lastId ?? 0, ...ids);
     let errors = errorsNow;
+    let rewound = false;
     if (known) {
       const knownFeeds = new Set(known.feeds);
       const entries = recent.entries
@@ -371,6 +385,7 @@ export class Hub {
         );
         if (outcome === 'retry') {
           lastId = entry.id - 1;
+          rewound = true;
           break;
         }
       }
@@ -392,7 +407,10 @@ export class Hub {
       // A refused event is fired again at the next read.
       errors = errorsNow.filter((id) => !failing.includes(id));
     }
-    const next = { user: userId, lastId, feeds: feedIds, errors };
+    // Rewound: the feeds new in this read stay new, or their backlog would
+    // be announced at the next read.
+    const feeds = rewound ? feedIds.filter((id) => known.feeds.includes(id)) : feedIds;
+    const next = { user: userId, server: this.config.url ?? '', lastId, feeds, errors };
     if (JSON.stringify(next) !== JSON.stringify(this.seen)) {
       this.seen = next;
       await this.store.save(next);
@@ -813,7 +831,7 @@ export class Hub {
       .filter((f) => !f.disabled && (!scope || f.categoryId === scope.id))
       .slice(0, MAX_FEED_REFRESH);
     if (this.refreshingFeeds) {
-      return { count: feeds.length }; // one refresh at a time: this one is on its way
+      return { count: 0 }; // one refresh at a time: the running one goes on
     }
     logger.info(`Refreshing ${feeds.length} feed(s)`);
     const queue = feeds.map((f) => f.id);

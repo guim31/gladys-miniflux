@@ -51,9 +51,10 @@ pila de no leídos en un gráfico.
 **Miniflux**: el número de artículos no leídos (y de fuentes con error, en
 rojo, si las hay), los seis últimos artículos no leídos (fuente, fecha,
 resumen, enlaces al artículo y a Miniflux cuando son https), un botón
-**Actualizar** que pide a Miniflux comprobar todas las fuentes, y un botón
-**Marcar leído**, con confirmación, para lo que muestra el widget. Ajustado a
-un dispositivo de categoría, el widget solo muestra y marca esa categoría.
+**Actualizar** con el que Miniflux obtiene las fuentes ahora, y un botón
+**Marcar leído**, con confirmación, que marca como leídos los artículos
+listados (solo ellos). Ajustado a un dispositivo de categoría, el widget solo
+muestra y actualiza esa categoría.
 
 ## Disparadores de escena
 

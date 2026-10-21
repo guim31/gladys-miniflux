@@ -49,9 +49,9 @@ your unread pile.
 **Miniflux**: the number of unread entries (and of feeds in error, in red,
 when there are some), the six newest unread entries (feed, date, summary,
 links to the article and to Miniflux when they are https), a **Refresh**
-button that asks Miniflux to check every feed, and a **Mark as read** button,
-with a confirmation, for what the widget shows. Set to a category device, the
-widget shows and marks that category only.
+button that makes Miniflux fetch the feeds now, and a **Mark as read** button,
+with a confirmation, that marks the listed entries as read (only them). Set
+to a category device, the widget shows and refreshes that category only.
 
 ## Scene triggers
 

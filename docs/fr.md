@@ -50,9 +50,10 @@ l'historique, pour suivre votre pile de non lus sur un graphique.
 **Miniflux** : le nombre d'articles non lus (et de flux en erreur, en rouge,
 s'il y en a), les six derniers articles non lus (flux, date, résumé, liens vers
 l'article et vers Miniflux quand ils sont en https), un bouton **Actualiser**
-qui demande à Miniflux de vérifier tous les flux, et un bouton **Marquer lu**,
-avec confirmation, pour ce que montre le widget. Réglé sur un appareil
-catégorie, le widget n'affiche et ne marque que cette catégorie.
+qui fait récupérer les flux par Miniflux maintenant, et un bouton **Marquer
+lu**, avec confirmation, qui marque comme lus les articles listés (eux seuls).
+Réglé sur un appareil catégorie, le widget n'affiche et n'actualise que cette
+catégorie.
 
 ## Déclencheurs de scène
 

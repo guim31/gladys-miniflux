@@ -102,10 +102,8 @@ export async function buildContent(hub, { language = 'en', settings = {} } = {})
     };
   }
   const names = pick(NAMES, language);
-  const scope = hub.scopeOf(settings?.category);
-  // A category gone from Miniflux shows the whole account, without the
-  // "Mark as read" button (it would not mark what the widget shows).
-  const category = scope ?? undefined;
+  // A category gone from Miniflux shows the whole account.
+  const category = hub.scopeOf(settings?.category) ?? undefined;
   const components = [
     {
       type: 'value',
@@ -146,20 +144,25 @@ export async function buildContent(hub, { language = 'en', settings = {} } = {})
     style: 'secondary',
     action: { key: ACTIONS.refresh },
   });
-  if (scope !== null && (category ? category.unread : hub.counters.unread) > 0) {
+  if (entries?.length > 0) {
+    // Marks the entries listed, nothing else (not those arrived since).
     components.push({
       type: 'button',
       label: pick(TEXT.read, language),
       icon: 'check-circle',
       style: 'secondary',
-      action: { key: ACTIONS.read, confirm: true },
+      action: {
+        key: ACTIONS.read,
+        confirm: true,
+        params: { entry_ids: entries.map((e) => e.id).join(',') },
+      },
     });
   }
   // The hub nudges the widget after every read and every change.
   return { ttl_seconds: 300, components };
 }
 
-async function action(hub, { actionKey, settings }) {
+async function action(hub, { actionKey, params, settings }) {
   const language = hub.language;
   try {
     if (actionKey === ACTIONS.refresh) {
@@ -167,8 +170,8 @@ async function action(hub, { actionKey, settings }) {
       return { message: each(DONE_TEXT, 'refresh') };
     }
     if (actionKey === ACTIONS.read) {
-      // The category set in the widget (an error when it is gone), or everything.
-      await hub.markRead(settings?.category);
+      // The entries the widget listed when it was drawn.
+      await hub.markEntries(params?.entry_ids);
       return { message: each(DONE_TEXT, 'read') };
     }
   } catch (err) {

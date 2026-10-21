@@ -52,10 +52,10 @@ deines Stapels an Ungelesenem.
 **Miniflux**: die Anzahl ungelesener Artikel (und der Feeds mit Fehler, in
 Rot, wenn es welche gibt), die sechs neuesten ungelesenen Artikel (Feed,
 Datum, Zusammenfassung, Links zum Artikel und zu Miniflux, wenn sie https
-sind), eine Taste **Aktualisieren**, die Miniflux bittet, alle Feeds zu prüfen,
-und eine Taste **Als gelesen**, mit Bestätigung, für das, was das Widget zeigt.
-Auf ein Kategorie-Gerät eingestellt, zeigt und markiert das Widget nur diese
-Kategorie.
+sind), eine Taste **Aktualisieren**, mit der Miniflux die Feeds jetzt abruft, und eine
+Taste **Als gelesen**, mit Bestätigung, die die aufgelisteten Artikel (nur sie)
+als gelesen markiert. Auf ein Kategorie-Gerät eingestellt, zeigt und
+aktualisiert das Widget nur diese Kategorie.
 
 ## Szenen-Auslöser
 
